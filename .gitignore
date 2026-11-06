@@ -1,0 +1,10 @@
+node_modules/
+dist/
+dist-artifact/
+work/
+# Personal match data and the private brief (health notes) never go public.
+fixtures/gpx/
+brief.md
+.env*
+# His reference matches (personal data) stay local.
+src/analysis/fixtures.test.ts
