@@ -1,6 +1,7 @@
 import { createContext, useContext } from 'react';
 import type { MatchAnalysis, MatchSettings, ParsedTrack, PlayerProfile, Sprint, Thresholds } from '../analysis/types';
 import type { Venue } from '../store';
+import type { Account, SyncState } from '../cloud';
 
 export interface AppCtx {
   tracks: ParsedTrack[];
@@ -28,6 +29,12 @@ export interface AppCtx {
   /** Opens the system file picker for GPX files. */
   pickFiles: () => void;
   removeTrack: (id: string) => void;
+  /** Online account (null = this phone only). */
+  account: Account | null;
+  syncState: SyncState;
+  signIn: (a: Account) => Promise<void>;
+  /** Resolves false when unsaved changes could not be sent (no internet). */
+  signOut: () => Promise<boolean>;
 }
 
 export const Ctx = createContext<AppCtx>(null as unknown as AppCtx);

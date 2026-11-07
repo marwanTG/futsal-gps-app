@@ -6,6 +6,7 @@ const P = (d: string, size = 24, fill = false) => (
 
 export const Icon = {
   plus: (s = 28) => P('M12 5v14M5 12h14', s),
+  cloud: (s = 24) => P('M7 18a4.5 4.5 0 0 1-.5-8.97A6 6 0 0 1 18 8.5a4.75 4.75 0 0 1-.5 9.5zM12 15V10m-2.5 2.5L12 10l2.5 2.5', s),
   bolt: (s = 24) => P('M13 2L4 14h7l-1 8 9-12h-7z', s, true),
   run: (s = 24) => P('M13 4a2 2 0 1 0 0-.01M8 21l3-6 3 2 1 4M6 12l3-4 4 1 3 3 3 1M11 15l-1-4', s),
   clock: (s = 24) => P('M12 7v5l3 2M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18z', s),

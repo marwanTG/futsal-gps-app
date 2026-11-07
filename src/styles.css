@@ -287,3 +287,9 @@ svg.gauge { max-width: 300px; margin: 0 auto; }
 .story-cards li { background: var(--card); border-radius: var(--r); padding: 14px 16px; border-inline-start: 4px solid var(--cyan); font-size: 0.95rem; }
 .story-cards li.good { border-inline-start-color: var(--lime); }
 .story-cards li.warn { border-inline-start-color: var(--coral); }
+
+/* Online account card */
+.account-form { margin-top: 12px; gap: 10px; }
+.link-box { width: 100%; margin: 10px 0; font-size: 0.8rem; color: var(--muted); }
+.warn-text { color: var(--coral); }
+.save-nudge { margin-bottom: 12px; }

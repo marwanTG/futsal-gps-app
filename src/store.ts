@@ -23,6 +23,8 @@ async function safe<T>(fn: () => Promise<T>, fallback: T): Promise<T> {
 
 export const store = {
   loadTracks: () => safe(async () => (await (await db()).getAll('tracks')) as ParsedTrack[], []),
+  getTrack: (id: string) => safe(async () => (await (await db()).get('tracks', id)) as ParsedTrack | undefined, undefined),
+  getSettings: (id: string) => safe(async () => (await (await db()).get('settings', id)) as MatchSettings | undefined, undefined),
   saveTrack: (t: ParsedTrack) => safe(async () => { await (await db()).put('tracks', t); }, undefined),
   deleteTrack: (id: string) => safe(async () => { const d = await db(); await d.delete('tracks', id); await d.delete('settings', id); }, undefined),
   loadSettings: () => safe(async () => {
@@ -34,6 +36,13 @@ export const store = {
   saveSettings: (id: string, s: MatchSettings) => safe(async () => { await (await db()).put('settings', s, id); }, undefined),
   getMeta: <T>(key: string) => safe(async () => (await (await db()).get('meta', key)) as T | undefined, undefined),
   setMeta: (key: string, v: unknown) => safe(async () => { await (await db()).put('meta', v, key); }, undefined),
+  /** Wipes this device's copy (used when switching to another player's link or signing out). */
+  clearAll: () => safe(async () => { const d = await db(); await Promise.all(['tracks', 'settings', 'meta'].map((s) => d.clear(s))); }, undefined),
 };
+
+/** Asks the browser not to wipe this site's storage when space runs low. */
+export function askPersistentStorage() {
+  try { void navigator.storage?.persist?.(); } catch { /* ignore */ }
+}
 
 export type { Thresholds, PlayerProfile };

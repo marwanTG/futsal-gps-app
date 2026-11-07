@@ -4,9 +4,10 @@ import { Card } from '../Card';
 import { useApp } from '../ctx';
 import { Matches } from './Setup';
 import { IN_ARTIFACT } from '../../env';
+import { AccountCard } from './Account';
 
 export function Mine({ onExportJson, onPresent }: { onExportJson: () => void; onPresent: () => void }) {
-  const { analyses, profile, setProfile, thresholds: th, setThresholds, openWizard } = useApp();
+  const { analyses, profile, setProfile, thresholds: th, setThresholds, openWizard, account } = useApp();
   const allMax = analyses.length ? Math.max(...analyses.map((m) => m.hrMax ?? 0)) || null : null;
   const note = heartRateNote(allMax, allMax, profile);
   const num = (v: string) => (v === '' ? null : +v);
@@ -16,6 +17,7 @@ export function Mine({ onExportJson, onPresent }: { onExportJson: () => void; on
 
   return (
     <div className="stack">
+      <AccountCard />
       <Matches onEdit={openWizard} />
 
       {!IN_ARTIFACT && <Card title="تصدير">
@@ -27,7 +29,7 @@ export function Mine({ onExportJson, onPresent }: { onExportJson: () => void; on
         <p className="small muted">جدول Excel من صفحة السبرينتات أو من «تطوري». وأي رسمة تتحفظ صورة من الزرار اللي في ركنها.</p>
       </Card>}
 
-      <Card title="بياناتك" lead="محفوظة على جهازك بس.">
+      <Card title="بياناتك" lead={account ? 'محفوظة أونلاين مع ماتشاتك، ما عدا الملاحظات الصحية.' : 'محفوظة على جهازك بس.'}>
         <div className="form-grid">
           <label className="field">السن<input type="number" inputMode="numeric" value={profile.age ?? ''} onChange={(e) => setProfile({ ...profile, age: num(e.target.value) })} /></label>
           <label className="field">الطول (سم)<input type="number" inputMode="numeric" value={profile.heightCm ?? ''} onChange={(e) => setProfile({ ...profile, heightCm: num(e.target.value) })} /></label>
@@ -64,7 +66,9 @@ export function Mine({ onExportJson, onPresent }: { onExportJson: () => void; on
           <li><b>وقت اللعب</b>: الثواني اللي كنت بتتحرك فيها، من غير الحارس والراحة والإصابة. كل المعدلات محسوبة عليه.</li>
           <li><b>الملعب</b>: بيتحدد من حركتك إنت، وبيتلف بحيث مرماك يبقى تحت دايماً.</li>
           <li><b>الدقة</b>: الساعة بتقيس مرة في الثانية، فالسرعة والانطلاقات أقل من الحقيقة شوية. ومش عارفة الكورة فين.</li>
-          <li>كل الحسابات على جهازك ومفيش داتا بتترفع. الخريطة الاختيارية بس بتطلب صور الملعب من النت.</li>
+          <li>{account
+            ? 'كل الحسابات على جهازك. الماتشات بتتحفظ أونلاين عشان متضيعش، والملاحظات الصحية لأ.'
+            : 'كل الحسابات على جهازك ومفيش داتا بتترفع إلا لو حفظت ماتشاتك أونلاين.'} الخريطة الاختيارية بتطلب صور الملعب من النت.</li>
         </ul>
       </details>
     </div>

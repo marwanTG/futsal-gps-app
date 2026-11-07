@@ -14,9 +14,11 @@ interface CardProps {
   className?: string;
   children: ReactNode;
   actions?: ReactNode;
+  /** Hide the save-as-image button (cards without a chart). */
+  noSave?: boolean;
 }
 
-export function Card({ title, lead, n, small, caveat, className, children, actions }: CardProps) {
+export function Card({ title, lead, n, small, caveat, className, children, actions, noSave }: CardProps) {
   const ref = useRef<HTMLElement>(null);
   const savePng = () => {
     const svg = ref.current?.querySelector('svg.chart') as SVGSVGElement | null;
@@ -31,7 +33,7 @@ export function Card({ title, lead, n, small, caveat, className, children, actio
         </div>
         <div className="card-tools">
           {actions}
-          {!IN_ARTIFACT && <button className="icon-btn no-print" onClick={savePng} title="حفظ الرسمة كصورة" aria-label="حفظ الرسمة كصورة">
+          {!IN_ARTIFACT && !noSave && <button className="icon-btn no-print" onClick={savePng} title="حفظ الرسمة كصورة" aria-label="حفظ الرسمة كصورة">
             <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M12 4v11m0 0l-4-4m4 4l4-4M5 19h14" /></svg>
           </button>}
         </div>

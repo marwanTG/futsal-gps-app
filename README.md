@@ -76,3 +76,27 @@ them against the reference table in `brief.md` section 9.
 - `src/ui/` — React screens and SVG charts (d3 for scales, density contours,
   zoom).
 - `src/store.ts` — IndexedDB persistence.
+
+## Online saving (optional, Supabase)
+
+Without configuration the app stays fully local, as above. With a Supabase
+project, players can save their matches online (by name with a personal link,
+or by email code), so nothing is lost when the browser storage is wiped, and
+the owner sees every player's matches in the Supabase dashboard.
+
+1. Create a free project at supabase.com.
+2. SQL Editor → paste `supabase/schema.sql` → Run.
+3. Authentication → Emails → "Magic Link" template: put `{{ .Token }}` in the
+   body so the email carries a code (the app asks for the code, not a link).
+4. Project Settings → API: copy the Project URL and the anon public key into
+   `.env` (not committed):
+   ```
+   VITE_SUPABASE_URL=https://xxxx.supabase.co
+   VITE_SUPABASE_ANON_KEY=eyJ...
+   ```
+5. `npm run build` / `bash scripts/deploy-pages.sh`.
+
+Viewing data: Table Editor → `matches_overview` (one row per match with the
+player's name), `players`, `matches`. The local IndexedDB copy stays the main
+copy; failed uploads are queued and retried when the internet returns. Health
+notes never leave the phone. Test: `node work/cloud-test.mjs` (fake server).
