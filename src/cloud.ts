@@ -76,14 +76,17 @@ export async function signUpByName(name: string): Promise<Account> {
   return { token, name: name.trim() };
 }
 
-/** Sends a sign-in code to the email (Supabase creates the login if new). */
-export async function sendEmailCode(email: string) {
-  await call('/auth/v1/otp', { email: email.trim(), create_user: true });
-}
+const PENDING_NAME = 'futsal-pending-name';
 
-export async function verifyEmailCode(email: string, code: string, name: string): Promise<Account> {
-  const s = await call<{ access_token: string }>('/auth/v1/verify', { type: 'email', email: email.trim(), token: code.trim() });
-  return playerForLogin(s.access_token, name);
+/**
+ * Emails a sign-in link (Supabase creates the login if new). Tapping it opens
+ * the app with the login in the URL, handled by finishLoginFromUrl().
+ * The typed name is kept here in case the link opens in this same browser.
+ */
+export async function sendEmailLink(email: string, name: string) {
+  try { localStorage.setItem(PENDING_NAME, name.trim()); } catch { /* ignore */ }
+  const back = `${location.origin}${location.pathname}`;
+  await call(`/auth/v1/otp?redirect_to=${encodeURIComponent(back)}`, { email: email.trim(), create_user: true });
 }
 
 async function playerForLogin(accessToken: string, name = ''): Promise<Account> {
@@ -101,17 +104,19 @@ export function signInWithGoogle() {
 }
 
 /**
- * After the return from Google: reads the login from the URL (#access_token=...),
- * removes it from the address bar, and finds or creates the player.
- * Returns null when the page was not opened by a Google return.
+ * After the return from Google or from the email link: reads the login from
+ * the URL (#access_token=...), removes it from the address bar, and finds or
+ * creates the player. Returns null when the page was not opened that way.
  */
-export async function finishGoogleSignIn(): Promise<Account | 'failed' | null> {
+export async function finishLoginFromUrl(): Promise<Account | 'failed' | null> {
   const h = new URLSearchParams(location.hash.slice(1));
   const at = h.get('access_token');
   if (!at && !h.get('error')) return null;
   try { history.replaceState(null, '', `${location.pathname}${location.search}`); } catch { /* ignore */ }
   if (!at) return 'failed';
-  try { return await playerForLogin(at); } catch { return 'failed'; }
+  let name = '';
+  try { name = localStorage.getItem(PENDING_NAME) ?? ''; localStorage.removeItem(PENDING_NAME); } catch { /* ignore */ }
+  try { return await playerForLogin(at, name); } catch { return 'failed'; }
 }
 
 /** Google blocks sign-in inside the Instagram / Facebook / TikTok built-in browsers. */

@@ -2,7 +2,7 @@
 // then show the personal link and the online-saving status.
 
 import { useState } from 'react';
-import { CLOUD_ON, IN_APP_BROWSER, personalLink, signInWithGoogle, sendEmailCode, signUpByName, verifyEmailCode } from '../../cloud';
+import { CLOUD_ON, IN_APP_BROWSER, personalLink, signInWithGoogle, sendEmailLink, signUpByName } from '../../cloud';
 import { Card } from '../Card';
 import { useApp } from '../ctx';
 
@@ -26,8 +26,7 @@ function SignIn() {
   const [mode, setMode] = useState<Mode>('name');
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
-  const [code, setCode] = useState('');
-  const [codeSent, setCodeSent] = useState(false);
+  const [linkSent, setLinkSent] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
 
@@ -37,8 +36,7 @@ function SignIn() {
   };
 
   const byName = () => run(async () => { await signIn(await signUpByName(name)); });
-  const askCode = () => run(async () => { await sendEmailCode(email); setCodeSent(true); });
-  const byEmail = () => run(async () => { await signIn(await verifyEmailCode(email, code, name)); });
+  const askLink = () => run(async () => { await sendEmailLink(email, name); setLinkSent(true); });
 
   const validEmail = /^\S+@\S+\.\S+$/.test(email.trim());
 
@@ -71,18 +69,13 @@ function SignIn() {
         </>}
 
         {mode === 'email' && <>
-          <label className="field">الإيميل<input type="email" inputMode="email" autoComplete="email" dir="ltr" value={email} disabled={codeSent} onChange={(e) => setEmail(e.target.value)} /></label>
-          {!codeSent
-            ? <button className="btn primary" disabled={busy || !validEmail} onClick={askCode}>{busy ? 'استنى…' : 'ابعتلي كود'}</button>
-            : <>
-              <label className="field">الكود اللي وصلك على الإيميل
-                <input inputMode="numeric" autoComplete="one-time-code" dir="ltr" maxLength={10} value={code} onChange={(e) => setCode(e.target.value.replace(/\D/g, ''))} />
-              </label>
-              <div className="btn-row">
-                <button className="btn primary grow" disabled={busy || code.length < 6} onClick={byEmail}>{busy ? 'استنى…' : 'دخول'}</button>
-                <button className="btn" disabled={busy} onClick={() => { setCodeSent(false); setCode(''); }}>غيّر الإيميل</button>
-              </div>
-            </>}
+          <label className="field">الإيميل<input type="email" inputMode="email" autoComplete="email" dir="ltr" value={email} disabled={linkSent} onChange={(e) => setEmail(e.target.value)} /></label>
+          {!linkSent
+            ? <button className="btn primary" disabled={busy || !validEmail} onClick={askLink}>{busy ? 'استنى…' : 'ابعتلي لينك الدخول'}</button>
+            : <div className="note">
+              <p>بعتنالك إيميل على <b dir="ltr">{email.trim()}</b>. افتحه ودوس <b>Sign in</b> وهتدخل على طول. (لو مش لاقيه، بص في الـ Spam)</p>
+              <button className="btn small" onClick={() => setLinkSent(false)}>غيّر الإيميل</button>
+            </div>}
           <p className="small muted">لو دخلت بالإيميل ده قبل كده، ماتشاتك القديمة هترجع.</p>
         </>}
 
@@ -136,7 +129,7 @@ function SignedIn() {
 function explain(msg: string) {
   const m = msg.toLowerCase();
   if (m.includes('failed to fetch') || m.includes('network')) return 'مفيش نت. جرب تاني.';
-  if (m.includes('expired') || m.includes('invalid') || m.includes('otp')) return 'الكود غلط أو خلص وقته. اطلب كود جديد.';
-  if (m.includes('rate') || m.includes('seconds')) return 'استنى دقيقة وبعدين اطلب كود تاني.';
+  if (m.includes('rate') || m.includes('seconds')) return 'إيميلات كتير اتبعتت دلوقتي. ادخل بجوجل أو باسمك، أو جرب الإيميل كمان ساعة.';
+  if (m.includes('invalid') && m.includes('email')) return 'الإيميل ده مش صحيح.';
   return 'حصلت مشكلة. جرب تاني.';
 }

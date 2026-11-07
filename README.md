@@ -81,13 +81,14 @@ them against the reference table in `brief.md` section 9.
 
 Without configuration the app stays fully local, as above. With a Supabase
 project, players can save their matches online (Google account, name with a
-personal link, or email code), so nothing is lost when the browser storage is wiped, and
+personal link, or an emailed sign-in link), so nothing is lost when the browser storage is wiped, and
 the owner sees every player's matches in the Supabase dashboard.
 
 1. Create a free project at supabase.com.
 2. SQL Editor → paste `supabase/schema.sql` → Run.
-3. Authentication → Emails → "Magic Link" template: put `{{ .Token }}` in the
-   body so the email carries a code (the app asks for the code, not a link).
+3. Email sign-in sends Supabase's default "Sign in" link (templates can only
+   be edited with custom SMTP). The built-in sender allows very few emails
+   per hour; add free SMTP (e.g. Resend) if many people use email.
 4. Google sign-in: in console.cloud.google.com create an OAuth client (Web
    application) with redirect URI `https://xxxx.supabase.co/auth/v1/callback`
    and publish the consent screen (email/profile scopes need no review). Paste

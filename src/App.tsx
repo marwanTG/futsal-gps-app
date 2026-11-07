@@ -4,7 +4,7 @@ import { parseGpx } from './analysis/parse';
 import { DEFAULT_THRESHOLDS, emptyOrientation, type MatchSettings, type ParsedTrack, type PlayerProfile, type Sprint, type Thresholds } from './analysis/types';
 import { askPersistentStorage, store, type Venue } from './store';
 import {
-  CLOUD_ON, Sync, clearQueue, finishGoogleSignIn, pendingIds, pull, readAccount, showLinkInAddressBar, tokenFromUrl, writeAccount,
+  CLOUD_ON, Sync, clearQueue, finishLoginFromUrl, pendingIds, pull, readAccount, showLinkInAddressBar, tokenFromUrl, writeAccount,
   type Account, type SyncState,
 } from './cloud';
 import { TipProvider } from './ui/Card';
@@ -84,8 +84,8 @@ export default function App() {
       let backFromGoogle = false;
       if (CLOUD_ON) {
         acct = readAccount() ?? (await store.getMeta<Account>('account')) ?? null;
-        const google = await finishGoogleSignIn();
-        if (google === 'failed') setErrors(['الدخول بجوجل منجحش. جرب تاني.']);
+        const google = await finishLoginFromUrl();
+        if (google === 'failed') setErrors(['الدخول منجحش أو اللينك خلص وقته. جرب تاني.']);
         backFromGoogle = google !== null;
         const urlToken = tokenFromUrl();
         const incoming = google && google !== 'failed' ? google : urlToken ? { token: urlToken, name: '' } : null;
