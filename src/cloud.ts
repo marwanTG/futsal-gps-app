@@ -82,10 +82,40 @@ export async function sendEmailCode(email: string) {
 
 export async function verifyEmailCode(email: string, code: string, name: string): Promise<Account> {
   const s = await call<{ access_token: string }>('/auth/v1/verify', { type: 'email', email: email.trim(), token: code.trim() });
-  const rows = await rpc<{ token: string; name: string }[]>('email_player', { p_name: name.trim() }, s.access_token);
-  if (!rows?.length) throw new Error('no player');
-  return { token: rows[0].token, name: rows[0].name, email: email.trim() };
+  return playerForLogin(s.access_token, name);
 }
+
+async function playerForLogin(accessToken: string, name = ''): Promise<Account> {
+  const rows = await rpc<{ token: string; name: string; email: string | null }[]>('email_player', { p_name: name.trim() }, accessToken);
+  if (!rows?.length) throw new Error('no player');
+  return { token: rows[0].token, name: rows[0].name, email: rows[0].email };
+}
+
+// ---------- Google (Gmail) sign-in ----------
+
+/** Sends the page to Google; Supabase brings the player back here with a login in the URL. */
+export function signInWithGoogle() {
+  const back = `${location.origin}${location.pathname}`;
+  location.href = `${BASE}/auth/v1/authorize?provider=google&redirect_to=${encodeURIComponent(back)}`;
+}
+
+/**
+ * After the return from Google: reads the login from the URL (#access_token=...),
+ * removes it from the address bar, and finds or creates the player.
+ * Returns null when the page was not opened by a Google return.
+ */
+export async function finishGoogleSignIn(): Promise<Account | 'failed' | null> {
+  const h = new URLSearchParams(location.hash.slice(1));
+  const at = h.get('access_token');
+  if (!at && !h.get('error')) return null;
+  try { history.replaceState(null, '', `${location.pathname}${location.search}`); } catch { /* ignore */ }
+  if (!at) return 'failed';
+  try { return await playerForLogin(at); } catch { return 'failed'; }
+}
+
+/** Google blocks sign-in inside the Instagram / Facebook / TikTok built-in browsers. */
+export const IN_APP_BROWSER = typeof navigator !== 'undefined'
+  && /Instagram|FBAN|FBAV|FB_IAB|TikTok|musical_ly|Snapchat|Line\//i.test(navigator.userAgent);
 
 export const pull = (token: string) => rpc<CloudData>('pull', { p_token: token });
 

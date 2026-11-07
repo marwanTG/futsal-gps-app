@@ -80,21 +80,27 @@ them against the reference table in `brief.md` section 9.
 ## Online saving (optional, Supabase)
 
 Without configuration the app stays fully local, as above. With a Supabase
-project, players can save their matches online (by name with a personal link,
-or by email code), so nothing is lost when the browser storage is wiped, and
+project, players can save their matches online (Google account, name with a
+personal link, or email code), so nothing is lost when the browser storage is wiped, and
 the owner sees every player's matches in the Supabase dashboard.
 
 1. Create a free project at supabase.com.
 2. SQL Editor → paste `supabase/schema.sql` → Run.
 3. Authentication → Emails → "Magic Link" template: put `{{ .Token }}` in the
    body so the email carries a code (the app asks for the code, not a link).
-4. Project Settings → API: copy the Project URL and the anon public key into
+4. Google sign-in: in console.cloud.google.com create an OAuth client (Web
+   application) with redirect URI `https://xxxx.supabase.co/auth/v1/callback`
+   and publish the consent screen (email/profile scopes need no review). Paste
+   the client id and secret in Supabase → Authentication → Providers → Google.
+   In Authentication → URL Configuration set the Site URL and a Redirect URL to
+   `https://marwantg.github.io/futsal-gps-app/`.
+5. Project Settings → API: copy the Project URL and the anon public key into
    `.env` (not committed):
    ```
    VITE_SUPABASE_URL=https://xxxx.supabase.co
    VITE_SUPABASE_ANON_KEY=eyJ...
    ```
-5. `npm run build` / `bash scripts/deploy-pages.sh`.
+6. `npm run build` / `bash scripts/deploy-pages.sh`.
 
 Viewing data: Table Editor → `matches_overview` (one row per match with the
 player's name), `players`, `matches`. The local IndexedDB copy stays the main

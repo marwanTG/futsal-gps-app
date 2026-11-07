@@ -79,18 +79,21 @@ begin
   return v;
 end $$;
 
--- Sign in by email (after the email code was verified). Finds or creates the
--- player linked to this email login and returns their token and name.
-create or replace function email_player(p_name text) returns table (token uuid, name text)
+-- Sign in by email code or by Google. Finds or creates the player linked to
+-- this login and returns their token, name and email. The name comes from the
+-- form, else from the Google account, else from the email address.
+drop function if exists email_player(text);
+create function email_player(p_name text) returns table (token uuid, name text, email text)
 language plpgsql security definer set search_path = public as $$
 #variable_conflict use_column
 declare uid uuid := auth.uid(); mail text := auth.jwt() ->> 'email';
+        gname text := coalesce(auth.jwt() -> 'user_metadata' ->> 'full_name', auth.jwt() -> 'user_metadata' ->> 'name');
 begin
   if uid is null then raise exception 'not signed in'; end if;
   insert into players (name, email, auth_uid)
-  values (coalesce(nullif(trim(p_name), ''), split_part(mail, '@', 1)), mail, uid)
+  values (left(coalesce(nullif(trim(p_name), ''), nullif(trim(gname), ''), split_part(mail, '@', 1)), 60), mail, uid)
   on conflict (auth_uid) do update set last_seen = now();
-  return query select p.token, p.name from players p where p.auth_uid = uid;
+  return query select p.token, p.name, p.email from players p where p.auth_uid = uid;
 end $$;
 
 -- Everything saved for this player.

@@ -4,7 +4,7 @@ import { parseGpx } from './analysis/parse';
 import { DEFAULT_THRESHOLDS, emptyOrientation, type MatchSettings, type ParsedTrack, type PlayerProfile, type Sprint, type Thresholds } from './analysis/types';
 import { askPersistentStorage, store, type Venue } from './store';
 import {
-  CLOUD_ON, Sync, clearQueue, pendingIds, pull, readAccount, showLinkInAddressBar, tokenFromUrl, writeAccount,
+  CLOUD_ON, Sync, clearQueue, finishGoogleSignIn, pendingIds, pull, readAccount, showLinkInAddressBar, tokenFromUrl, writeAccount,
   type Account, type SyncState,
 } from './cloud';
 import { TipProvider } from './ui/Card';
@@ -81,12 +81,17 @@ export default function App() {
       askPersistentStorage();
       // Which player is this phone? A personal link (?p=) wins over the saved account.
       let acct: Account | null = null;
+      let backFromGoogle = false;
       if (CLOUD_ON) {
         acct = readAccount() ?? (await store.getMeta<Account>('account')) ?? null;
+        const google = await finishGoogleSignIn();
+        if (google === 'failed') setErrors(['الدخول بجوجل منجحش. جرب تاني.']);
+        backFromGoogle = google !== null;
         const urlToken = tokenFromUrl();
-        if (urlToken && acct?.token !== urlToken) {
+        const incoming = google && google !== 'failed' ? google : urlToken ? { token: urlToken, name: '' } : null;
+        if (incoming && acct?.token !== incoming.token) {
           if (acct) { await store.clearAll(); clearQueue(); } // another player's matches were on this phone
-          acct = { token: urlToken, name: '' };
+          acct = incoming;
         }
       }
       const [tr, st, th, pr] = await Promise.all([store.loadTracks(), store.loadSettings(), store.getMeta<Thresholds>('thresholds'), store.getMeta<PlayerProfile>('profile')]);
@@ -96,7 +101,8 @@ export default function App() {
       if (th) setThresholdsState({ ...DEFAULT_THRESHOLDS, ...th });
       if (pr) setProfileState({ ...DEFAULT_PROFILE, ...pr });
       setSelectedId(tr.length ? tr[tr.length - 1].id : null);
-      if (!tr.length || readTab() === 'mine') setTabState('match');
+      if (backFromGoogle) setTabState('mine'); // show the "أهلاً" card right after the Google return
+      else if (!tr.length || readTab() === 'mine') setTabState('match');
       setLoaded(true);
       if (acct) connect(acct, tr.map((t) => t.id));
     })();
