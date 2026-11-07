@@ -80,7 +80,7 @@ function SignIn() {
         </>}
 
         {error && <p className="note warn-text">{error}</p>}
-        <p className="small muted">ماتشاتك (المكان والسرعة والنبض) هتتحفظ أونلاين، وصاحب التطبيق يقدر يشوفها. الملاحظات الصحية بتفضل على موبايلك بس.</p>
+        <p className="small muted">ماتشاتك (المكان والسرعة والنبض) هتتحفظ أونلاين، وصاحب التطبيق يقدر يشوفها. الملاحظات الصحية بتفضل على موبايلك بس. <a href="privacy.html" target="_blank" rel="noopener">سياسة الخصوصية</a></p>
       </div>
     </Card>
   );

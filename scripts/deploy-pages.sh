@@ -9,7 +9,7 @@ REPO=marwanTG/futsal-gps-app
 git push -u origin main
 npm run build
 OUT=$(mktemp -d)
-cp dist/index.html "$OUT/" && touch "$OUT/.nojekyll"
+cp dist/index.html dist/privacy.html "$OUT/" && touch "$OUT/.nojekyll"
 git -C "$OUT" init -q -b gh-pages
 git -C "$OUT" -c user.name=marwanTG -c user.email=38076309+marwanTG@users.noreply.github.com add -A
 git -C "$OUT" -c user.name=marwanTG -c user.email=38076309+marwanTG@users.noreply.github.com commit -q -m "Deploy app"
