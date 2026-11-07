@@ -125,6 +125,7 @@ export default function App() {
     sync.current = s;
     setSyncState('saving');
     await s.flush(); // send anything left from last time first
+    setSyncState('saving'); // that flush says "ok" too early: uploads of this phone's matches come below
     let data;
     try { data = await pull(acct.token); } catch { setSyncState('offline'); return; }
     const named: Account = { ...acct, name: data.name, email: data.email };
@@ -134,7 +135,6 @@ export default function App() {
     const have = new Set(localIds);
     const online = new Set(data.matches.map((m) => m.id));
     const fresh = data.matches.filter((m) => !have.has(m.id) && !pend.has(`delete:${m.id}`));
-    for (const m of fresh) { await store.saveTrack(m.track); if (m.settings) await store.saveSettings(m.id, m.settings); }
     const newSettings: Record<string, MatchSettings> = {};
     for (const m of data.matches) {
       if (!m.settings || pend.has(`match:${m.id}`) || pend.has(`delete:${m.id}`)) continue;
@@ -147,6 +147,8 @@ export default function App() {
       setTracks((prev) => [...prev, ...fresh.map((m) => m.track)].sort((a, b) => a.startTime - b.startTime));
       setSelectedId((cur) => cur ?? fresh[fresh.length - 1].id);
     }
+    // show first, then keep a copy on this phone
+    for (const m of fresh) { await store.saveTrack(m.track); await store.saveSettings(m.id, newSettings[m.id]); }
 
     if (data.meta.thresholds && !pend.has('meta:thresholds')) {
       const t = { ...DEFAULT_THRESHOLDS, ...data.meta.thresholds };

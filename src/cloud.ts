@@ -55,7 +55,8 @@ export function showLinkInAddressBar(token: string) {
 async function call<T>(path: string, body: unknown, bearer?: string): Promise<T> {
   const res = await fetch(`${BASE}${path}`, {
     method: 'POST',
-    headers: { apikey: KEY!, Authorization: `Bearer ${bearer ?? KEY}`, 'Content-Type': 'application/json' },
+    // New "sb_publishable_" keys go only in apikey; a user login goes in Authorization.
+    headers: { apikey: KEY!, 'Content-Type': 'application/json', ...(bearer ? { Authorization: `Bearer ${bearer}` } : {}) },
     body: JSON.stringify(body),
   });
   const text = await res.text();
