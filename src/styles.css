@@ -295,3 +295,6 @@ svg.gauge { max-width: 300px; margin: 0 auto; }
 .save-nudge { margin-bottom: 12px; }
 .google-btn { width: 100%; display: inline-flex; align-items: center; justify-content: center; gap: 10px; background: #fff; color: #1f1f1f; border-color: #fff; min-height: 52px; font-size: 1rem; }
 .or-line { text-align: center; margin: 10px 0; }
+.gate { padding-top: 8px; }
+.gate-head { text-align: center; padding: 12px 4px 4px; }
+.gate-head h2 { font-size: 1.4rem; font-weight: 800; margin-bottom: 6px; }

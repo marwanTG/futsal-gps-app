@@ -19,8 +19,11 @@ const overflow = async (page, name, where) => {
 
 for (const [name, viewport] of [['phone', { width: 360, height: 780 }], ['desk', { width: 1280, height: 900 }]]) {
   const ctx = await browser.newContext({ viewport });
+  // Skip the required sign-up screen with a made-up account: the database rejects
+  // its token, so nothing is written online and the app just runs offline.
+  await ctx.addInitScript(() => localStorage.setItem('futsal-account', JSON.stringify({ token: '00000000-0000-0000-0000-000000000000', name: 'smoke' })));
   const page = await ctx.newPage();
-  page.on('console', (m) => m.type() === 'error' && errors.push(`${name}: ${m.text()}`));
+  page.on('console', (m) => m.type() === 'error' && !m.text().startsWith('Failed to load resource') && errors.push(`${name}: ${m.text()}`));
   page.on('pageerror', (e) => errors.push(`${name}: ${e.message}`));
   await page.goto(pathToFileURL(resolve('dist/index.html')).href);
   await page.waitForSelector('.welcome');

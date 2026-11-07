@@ -21,7 +21,22 @@ export function AccountCard() {
   return account ? <SignedIn /> : <SignIn />;
 }
 
-function SignIn() {
+/** Full screen shown before anything else when online saving is on and nobody is signed in. */
+export function SignInGate() {
+  const { tracks } = useApp();
+  return (
+    <div className="stack gate">
+      <div className="gate-head">
+        <h2>أهلاً بيك في تحليل الخماسي</h2>
+        <p className="muted">سجّل مرة واحدة عشان تبدأ. ماتشاتك هتتحفظ وترجعلك من أي موبايل.</p>
+        {tracks.length > 0 && <p className="note">الماتشات اللي على الموبايل ده ({tracks.length}) هتتحفظ في حسابك أول ما تسجل.</p>}
+      </div>
+      <SignIn gate />
+    </div>
+  );
+}
+
+function SignIn({ gate = false }: { gate?: boolean }) {
   const { signIn } = useApp();
   const [mode, setMode] = useState<Mode>('name');
   const [name, setName] = useState('');
@@ -41,7 +56,7 @@ function SignIn() {
   const validEmail = /^\S+@\S+\.\S+$/.test(email.trim());
 
   return (
-    <Card noSave title="احفظ ماتشاتك" lead="عشان متضيعش لو فتحت اللينك من الأول أو من موبايل تاني.">
+    <Card noSave title={gate ? 'سجّل عشان تبدأ' : 'احفظ ماتشاتك'} lead={gate ? undefined : 'عشان متضيعش لو فتحت اللينك من الأول أو من موبايل تاني.'}>
       {GOOGLE_ON && (IN_APP_BROWSER
         ? <p className="note">عشان تدخل بجوجل، افتح اللينك في كروم أو سفاري (من التلت نقط فوق ← فتح في المتصفح). أو احفظ باسمك تحت.</p>
         : <button className="btn google-btn" onClick={signInWithGoogle}>
@@ -65,7 +80,7 @@ function SignIn() {
 
         {mode === 'name' && <>
           <p className="small muted">هتاخد لينك خاص بيك. أي موبايل يفتحه هيلاقي ماتشاتك.</p>
-          <button className="btn primary" disabled={busy || !name.trim()} onClick={byName}>{busy ? 'استنى…' : 'احفظ'}</button>
+          <button className="btn primary" disabled={busy || !name.trim()} onClick={byName}>{busy ? 'استنى…' : gate ? 'ابدأ' : 'احفظ'}</button>
         </>}
 
         {mode === 'email' && <>

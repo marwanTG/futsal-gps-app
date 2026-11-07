@@ -16,6 +16,7 @@ import { MatchView } from './ui/screens/Match';
 import { Mine } from './ui/screens/Mine';
 import { Progress } from './ui/screens/Progress';
 import { Wizard } from './ui/screens/Setup';
+import { SignInGate } from './ui/screens/Account';
 import { Icon } from './ui/icons';
 import { SprintList } from './ui/screens/Sprints';
 
@@ -250,7 +251,7 @@ export default function App() {
     thresholds, setThresholds: (t) => { setThresholdsState(t); store.setMeta('thresholds', t); sync.current?.push({ kind: 'meta', key: 'thresholds' }, 1500); },
     profile, setProfile: (p) => { setProfileState(p); store.setMeta('profile', p); sync.current?.push({ kind: 'meta', key: 'profile' }, 1500); },
     account, syncState, signOut,
-    signIn: (a: Account) => connect(a, tracksRef.current.map((t) => t.id)),
+    signIn: (a: Account) => { setTab('mine'); return connect(a, tracksRef.current.map((t) => t.id)); }, // land on the personal link
     venues, includeUnconfirmed, setIncludeUnconfirmed, dirMatches,
     openSprint: (s: Sprint) => { setHighlight(sprintKey(s)); setTab('sprints'); },
     highlightSprint, addFiles, removeTrack,
@@ -265,6 +266,9 @@ export default function App() {
     matches: analyses.map(({ samples: _s, timeline: _t, axisSamples: _a, latlon: _l, ...rest }) => ({ ...rest, settings: settings[rest.id] })),
   }, 'futsal-analysis.json');
 
+  // Online saving on and nobody signed in: sign-up comes first (his rule, 2026-11-07).
+  const gated = CLOUD_ON && loaded && !account;
+
   const screen = {
     match: <MatchView />, field: <Field />, sprints: <SprintList />, progress: <Progress />,
     mine: <Mine onExportJson={exportAll} onPresent={() => { setTab('match'); setPresenting(true); }} />,
@@ -276,7 +280,7 @@ export default function App() {
         <div className={`app ${presenting ? 'presenting' : ''}`}>
           <header className="top no-print">
             <h1><span className="logo">{Icon.bolt(18)}</span>تحليل الخماسي</h1>
-            {analyses.length > 0 && tab !== 'mine' && (
+            {!gated && analyses.length > 0 && tab !== 'mine' && (
               <label className="match-pick">
                 <span className="sr">الماتش</span>
                 <select value={selected?.id ?? ''} onChange={(e) => setSelectedId(e.target.value)}>
@@ -286,24 +290,17 @@ export default function App() {
             )}
           </header>
           {errors.length > 0 && <div className="banner warn">{errors.join(' · ')}</div>}
-          {CLOUD_ON && loaded && !account && tracks.length > 0 && tab !== 'mine' && (
-            <button className="banner no-print save-nudge" onClick={() => setTab('mine')}>
-              <span className="banner-icon">{Icon.cloud(22)}</span>
-              <span>ماتشاتك على الموبايل ده بس وممكن تضيع. احفظها أونلاين</span>
-              {Icon.chevron()}
-            </button>
-          )}
-          <main>{loaded ? screen : <div className="skeleton" />}</main>
-          <nav className="bottom-nav no-print" aria-label="التنقل">
+          <main>{!loaded ? <div className="skeleton" /> : gated ? <SignInGate /> : screen}</main>
+          {!gated && <nav className="bottom-nav no-print" aria-label="التنقل">
             {TABS.map((t) => (
               <button key={t.id} className={tab === t.id ? 'on' : ''} aria-current={tab === t.id ? 'page' : undefined} onClick={() => setTab(t.id)}>
                 {t.icon}<span>{t.label}</span>
               </button>
             ))}
-          </nav>
+          </nav>}
           <input ref={fileInput} type="file" multiple hidden
             onChange={(e) => { const f = e.target.files; if (f?.length) addFiles([...f]); e.target.value = ''; }} />
-          {analyses.length > 0 && !presenting && (
+          {analyses.length > 0 && !presenting && !gated && (
             <button className="fab no-print" onClick={() => fileInput.current?.click()} aria-label="ارفع ماتش">{Icon.plus(30)}</button>
           )}
           {wizardId && <Wizard id={wizardId} onClose={() => { setWizardId(null); setTab('match'); }} />}
