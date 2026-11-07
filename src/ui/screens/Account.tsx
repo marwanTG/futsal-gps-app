@@ -2,7 +2,7 @@
 // then show the personal link and the online-saving status.
 
 import { useState } from 'react';
-import { CLOUD_ON, IN_APP_BROWSER, personalLink, signInWithGoogle, sendEmailLink, signUpByName } from '../../cloud';
+import { CLOUD_ON, GOOGLE_ON, IN_APP_BROWSER, personalLink, signInWithGoogle, sendEmailLink, signUpByName } from '../../cloud';
 import { Card } from '../Card';
 import { useApp } from '../ctx';
 
@@ -42,7 +42,7 @@ function SignIn() {
 
   return (
     <Card noSave title="احفظ ماتشاتك" lead="عشان متضيعش لو فتحت اللينك من الأول أو من موبايل تاني.">
-      {IN_APP_BROWSER
+      {GOOGLE_ON && (IN_APP_BROWSER
         ? <p className="note">عشان تدخل بجوجل، افتح اللينك في كروم أو سفاري (من التلت نقط فوق ← فتح في المتصفح). أو احفظ باسمك تحت.</p>
         : <button className="btn google-btn" onClick={signInWithGoogle}>
           <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
@@ -52,8 +52,8 @@ function SignIn() {
             <path fill="#EA4335" d="M12 4.8c1.7 0 3.3.6 4.5 1.8l3.4-3.4A12 12 0 0 0 1.4 6.6l4 3.1C6.3 6.9 8.9 4.8 12 4.8z" />
           </svg>
           ادخل بحساب جوجل (Gmail)
-        </button>}
-      <p className="small muted or-line">أو</p>
+        </button>)}
+      {GOOGLE_ON && <p className="small muted or-line">أو</p>}
 
       <div className="segs" role="tablist">
         <button role="tab" aria-selected={mode === 'name'} className={mode === 'name' ? 'on' : ''} onClick={() => setMode('name')}>باسمي</button>

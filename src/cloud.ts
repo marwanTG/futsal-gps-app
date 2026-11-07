@@ -13,6 +13,9 @@ const KEY = import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined;
 /** False in the claude.ai build and when no Supabase project is configured. */
 export const CLOUD_ON = !IN_ARTIFACT && !!BASE && !!KEY;
 
+/** The Google button shows only once the Google provider is set up in Supabase (VITE_GOOGLE_ON=1). */
+export const GOOGLE_ON = CLOUD_ON && import.meta.env.VITE_GOOGLE_ON === '1';
+
 export interface Account { token: string; name: string; email?: string | null }
 
 export interface CloudData {
